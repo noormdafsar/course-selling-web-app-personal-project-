@@ -88,6 +88,15 @@ adminRouter.post('/login', async function (req, res) {
                 })
             }
 
+            // check if email is valid:
+            const isEmailValid = await bcrypt.compare(email, existingAdminUser.email);
+            if (!isEmailValid) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid email"
+                })
+            }
+
             // check if password is valid:
             const isPasswordValid = await bcrypt.compare(password, existingAdminUser.password);
             if (!isPasswordValid) {
