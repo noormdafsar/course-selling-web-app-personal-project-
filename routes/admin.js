@@ -1,8 +1,9 @@
 const { Router, default: e } = require('express');
 const adminRouter = Router();
-const { adminModel } = require('../db');
+const { adminModel, courseModel } = require('../db');
 const { z } = require('zod');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
+const { ca } = require('zod/v4/locales');
 
 const adminSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -10,6 +11,15 @@ const adminSchema = z.object({
     name: z.string().min(3),
 })
 
+const courseSchema = z.object({
+    name: z.string().min(3, "Course Name must be at least 3 characters long"),
+    description: z.string().min(6, "Description must be at least 6 characters long"),
+    price: z.number().positive(),
+    instructor: z.string().min(3),
+    rating: z.number().min(1).max(5),
+    createdAt: z.date(),
+    updatedAt: z.date(),
+})
 
 adminRouter.post('/signup', async function (req, res) {
     try {
@@ -57,32 +67,117 @@ adminRouter.post('/signup', async function (req, res) {
 
 })
 
-adminRouter.post('/login', function (req, res) {
-    res.json({
-        success: true,
-        message: "login successfully"
-    })
+adminRouter.post('/login', async function (req, res) {
+    try {
+        const parsedData = adminSchema.safeParse(req.body);
+        if (!parsedData.success) {
+            return res.status(400).json({
+                success: false,
+                message: parsedData.error.issues[0].message
+            })
+        }
+        else {
+            const { email, password } = parsedData.data;
+            const existingAdminUser = await adminModel.findOne({ email });
+
+            // check if user exist:
+            if (!existingAdminUser) {
+                return res.status(404).json({
+                    success: false,
+                    message: "Admin user not found"
+                })
+            }
+
+            // check if password is valid:
+            const isPasswordValid = await bcrypt.compare(password, existingAdminUser.password);
+            if (!isPasswordValid) {
+                return res.status(401).json({
+                    success: false,
+                    message: "Invalid password"
+                })
+            }
+            else {
+                return res.status(200).json({
+                    success: true,
+                    message: "Admin user logged in successfully"
+                })
+            }
+        }
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
 })
 
 adminRouter.post('/logout', function (req, res) {
-    res.json({
+    return res.status(200).json({
         success: true,
-        message: "logout successfully"
+        message: "Admin user logged out successfully"
     })
 })
 
+// Course creation by admin:
 adminRouter.post('/create-course', function (req, res) {
-    res.json({
-        success: true,
-        message: "create course successfully"
-    })
+    try {
+        const { name, description, price, instructor, rating } = req.body;
+        const parsedData = courseSchema.safeParse(req.body);
+        if (!parsedData.success) {
+            return res.status(401).json({
+                success: false,
+                message: parsedData.error.issues[0].message
+            })
+        }
+        else {
+            const newCourse = new courseModel({
+                name,
+                description,
+                price,
+                instructor,
+                rating
+            })
+
+            newCourse.create();
+            return res.status(201).json({
+                success: true,
+                message: "Course created successfully"
+            })
+        }
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
+
 })
 
+// Course list
 adminRouter.get('/courses', function (req, res) {
-    res.json({
-        success: true,
-        message: "get courses successfully"
-    })
+    try {
+        const courses = courseModel.find();
+        if (!courses) {
+            return res.status(404).json({
+                success: false,
+                message: "No courses found"
+            })
+        }
+        else {
+            return res.status(200).json({
+                success: true,
+                data: courses
+            })
+        }
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
 })
 
 module.exports = {
