@@ -51,7 +51,13 @@ adminRouter.post('/signup', async function (req, res) {
                 password: hashedPassword,
                 name
             })
+
+            // New Admin is getting created:
             await newAdminUser.create();
+            
+            // Admin details getting save:
+            await newAdminUser.save();
+            
             res.status(201).json({
                 success: true,
                 message: "Admin user created successfully"
