@@ -1,17 +1,6 @@
 const { Router } = require('express');
 const courseRouter = Router();
 const { courseModel, purchaseModel } = require('../db');
-// const { z } = require('zod');
-
-// const courseSchema = z.object({
-//     name: z.string().min(3, "Course Name must be at least 3 characters long"),
-//     description: z.string().min(6, "Description must be at least 6 characters long"),
-//     price: z.number().positive(),
-//     instructor: z.string().min(3),
-//     rating: z.number().min(1).max(5),
-//     createdAt: z.date(),
-//     updatedAt: z.date(),
-// })
 
 // This is for list of all the available course show for users who loggedIn or signup for buying new course
 courseRouter.get('/courses', async function (req, res) {
