@@ -22,7 +22,7 @@ const courseSchema = z.object({
     updatedAt: z.date(),
 })
 
-adminRouter.post('/signin', async function (req, res) {
+adminRouter.post('/signup', async function (req, res) {
     try {
         // Input validation:
         const parsedData = adminSchema.safeParse(req.body);

@@ -3,6 +3,7 @@ const userRouter = Router();
 const { userModel } = require('../db');
 const { z } = require('zod');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 const JWT_USER_PASSWORD = 'Nooruddin@786'
 
 const userSchema = z.object({
@@ -15,15 +16,16 @@ const userSchema = z.object({
     updatedAt: z.date().optional(),
 })
 
-userRouter.post('/signin', async function (req, res) {
+const loginSchema = z.object({
+    email: z.string().email("Invalid email address"),
+    password: z.string().min(6, "Password must be at least 6 characters long"),
+})
+
+userRouter.post('/signup', async function (req, res) {
 
     try {
         // 1. Input validation:
         const parsedData = userSchema.safeParse(req.body);
-
-        // 2. Hash the input password so that plainText password must not save into database
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         if (!parsedData.success) {
             res.status(400).json({
@@ -33,13 +35,17 @@ userRouter.post('/signin', async function (req, res) {
         }
         else {
             const { name, email, password, role } = parsedData.data;
-            const existingUser = await userModel.findOne({ email, password });
+
+            const existingUser = await userModel.findOne({ email });
             if (existingUser) {
                 return res.status(400).json({
                     success: false,
                     message: "User with this email already exists"
                 })
             }
+            // 2. Hash the input password so that plainText password must not save into database
+            const saltRounds = 10;
+            const hashedPassword = await bcrypt.hash(password, saltRounds);
 
             // Save user into database:
             const newUser = new userModel({
@@ -48,9 +54,6 @@ userRouter.post('/signin', async function (req, res) {
                 password: hashedPassword,
                 role
             })
-
-            // New user is getting created here:
-            await newUser.create();
 
             // New User's Data is getting save here in database:
             await newUser.save();
@@ -72,6 +75,7 @@ userRouter.post('/login', async function (req, res) {
     try {
         // Input validation:
         const parsedData = userSchema.safeParse(req.body);
+        const parsedData = loginSchema.safeParse(req.body);
         if (!parsedData.success) {
             res.status(400).json({
                 success: false,
@@ -81,21 +85,26 @@ userRouter.post('/login', async function (req, res) {
         else {
             const { email, password } = req.body;
             const existingUser = await userModel.findOne({ email, password});
+            const { email, password } = parsedData.data;
+            const existingUser = await userModel.findOne({ email });
 
             // check if user exist:
-            if (!existingUser) {
-                return res.status(404).json({
-                    success: false,
-                    message: "User not found"
-                })
-            }
+            // if (!existingUser) {
+            //     return res.status(404).json({
+            //         success: false,
+            //         message: "User not found"
+            //     })
+            // }
 
             // check if email is valid:
             const isEmailValid = await bcrypt.compare(email, existingUser.email);
             if (!isEmailValid) {
                 return res.status(401).json({
+            if (!existingUser) {
+                return res.status(404).json({
                     success: false,
                     message: "Invalid email"
+                    message: "User not found"
                 })
             }
 
