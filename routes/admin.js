@@ -113,7 +113,11 @@ adminRouter.post('/login', async function (req, res) {
                 })
             }
             else {
-                const token = jwt.sign({ _id: existingAdminUser._id }, JWT_ADMIN_PASSWORD);
+                const token = jwt.sign({
+                    _id: existingAdminUser._id,
+                    name: existingAdminUser.name,
+                    email: existingAdminUser.email
+                }, JWT_ADMIN_PASSWORD);
                 return res.status(200).json({
                     success: true,
                     message: "Admin user logged in successfully",

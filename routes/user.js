@@ -102,7 +102,11 @@ userRouter.post('/login', async function (req, res) {
                 })
             }
             else {
-                const token = jwt.sign({ _id: existingUser._id }, JWT_USER_PASSWORD);
+                const token = jwt.sign({
+                    _id: existingUser._id,
+                    email: existingUser.email,
+                    role: existingUser.role
+                }, JWT_USER_PASSWORD);
                 return res.status(200).json({
                     success: true,
                     message: "User logged in successfully",
