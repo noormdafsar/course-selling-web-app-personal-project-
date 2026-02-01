@@ -2,6 +2,8 @@ const { Router } = require('express');
 const userRouter = Router();
 const { userModel } = require('../db');
 const { z } = require('zod');
+const bcrypt = require('bcrypt');
+const JWT_USER_PASSWORD = 'Nooruddin@786'
 
 const userSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
@@ -13,13 +15,13 @@ const userSchema = z.object({
     updatedAt: z.date().optional(),
 })
 
-userRouter.post('/signup', async function (req, res) {
+userRouter.post('/signin', async function (req, res) {
 
     try {
         // 1. Input validation:
         const parsedData = userSchema.safeParse(req.body);
 
-        // 2. Hash the input password so that plainText password must not save inot database
+        // 2. Hash the input password so that plainText password must not save into database
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -31,13 +33,15 @@ userRouter.post('/signup', async function (req, res) {
         }
         else {
             const { name, email, password, role } = parsedData.data;
-            const existingUser = await userModel.findOne({ email });
+            const existingUser = await userModel.findOne({ email, password });
             if (existingUser) {
                 return res.status(400).json({
                     success: false,
                     message: "User with this email already exists"
                 })
             }
+
+            // Save user into database
             const newUser = new userModel({
                 name,
                 email,
@@ -72,7 +76,7 @@ userRouter.post('/login', async function (req, res) {
         }
         else {
             const { email, password } = req.body;
-            const existingUser = await userModel.findOne({ email });
+            const existingUser = await userModel.findOne({ email, password});
 
             // check if user exist:
             if (!existingUser) {
@@ -100,9 +104,11 @@ userRouter.post('/login', async function (req, res) {
                 })
             }
             else {
+                const token = jwt.sign({ _id: existingUser._id }, JWT_USER_PASSWORD);
                 return res.status(200).json({
                     success: true,
-                    message: "User logged in successfully"
+                    message: "User logged in successfully",
+                    token
                 })
             }
         }
