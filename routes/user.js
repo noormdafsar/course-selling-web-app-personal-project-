@@ -74,7 +74,6 @@ userRouter.post('/signup', async function (req, res) {
 userRouter.post('/login', async function (req, res) {
     try {
         // Input validation:
-        const parsedData = userSchema.safeParse(req.body);
         const parsedData = loginSchema.safeParse(req.body);
         if (!parsedData.success) {
             res.status(400).json({
@@ -83,27 +82,13 @@ userRouter.post('/login', async function (req, res) {
             })
         }
         else {
-            const { email, password } = req.body;
-            const existingUser = await userModel.findOne({ email, password});
             const { email, password } = parsedData.data;
             const existingUser = await userModel.findOne({ email });
 
             // check if user exist:
-            // if (!existingUser) {
-            //     return res.status(404).json({
-            //         success: false,
-            //         message: "User not found"
-            //     })
-            // }
-
-            // check if email is valid:
-            const isEmailValid = await bcrypt.compare(email, existingUser.email);
-            if (!isEmailValid) {
-                return res.status(401).json({
             if (!existingUser) {
                 return res.status(404).json({
                     success: false,
-                    message: "Invalid email"
                     message: "User not found"
                 })
             }
@@ -121,6 +106,7 @@ userRouter.post('/login', async function (req, res) {
                 return res.status(200).json({
                     success: true,
                     message: "User logged in successfully",
+                    data: [existingUser.name, existingUser.email, existingUser.role, existingUser.courses],
                     token: token
                 })
             }
