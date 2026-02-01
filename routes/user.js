@@ -41,14 +41,18 @@ userRouter.post('/signin', async function (req, res) {
                 })
             }
 
-            // Save user into database
+            // Save user into database:
             const newUser = new userModel({
                 name,
                 email,
                 password: hashedPassword,
                 role
             })
+
+            // New user is getting created here:
             await newUser.create();
+
+            // New User's Data is getting save here in database:
             await newUser.save();
             res.status(201).json({
                 success: true,
@@ -108,7 +112,7 @@ userRouter.post('/login', async function (req, res) {
                 return res.status(200).json({
                     success: true,
                     message: "User logged in successfully",
-                    token
+                    token: token
                 })
             }
         }

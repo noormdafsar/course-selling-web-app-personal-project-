@@ -3,7 +3,8 @@ const adminRouter = Router();
 const { adminModel, courseModel } = require('../db');
 const { z } = require('zod');
 const bcrypt = require('bcrypt');
-const { ca } = require('zod/v4/locales');
+const jwt = require('jsonwebtoken');
+const JWT_ADMIN_PASSWORD = 'NooruddinMdAfsar@786'
 
 const adminSchema = z.object({
     email: z.string().email("Invalid email address"),
@@ -21,7 +22,7 @@ const courseSchema = z.object({
     updatedAt: z.date(),
 })
 
-adminRouter.post('/signup', async function (req, res) {
+adminRouter.post('/signin', async function (req, res) {
     try {
         // Input validation:
         const parsedData = adminSchema.safeParse(req.body);
@@ -112,9 +113,11 @@ adminRouter.post('/login', async function (req, res) {
                 })
             }
             else {
+                const token = jwt.sign({ _id: existingAdminUser._id }, JWT_ADMIN_PASSWORD);
                 return res.status(200).json({
                     success: true,
-                    message: "Admin user logged in successfully"
+                    message: "Admin user logged in successfully",
+                    token: token
                 })
             }
         }
