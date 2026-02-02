@@ -12,7 +12,7 @@ function userMiddleware(req, res, next) {
     else {
         try {
             const decoded = jwt.verify(token, JWT_ADMIN_PASSWORD);
-            req.user = decoded;
+            req.userId = decoded.id;
             next();
         }
         catch (err) {
