@@ -3,7 +3,7 @@ const courseRouter = Router();
 const { courseModel, purchaseModel } = require('../db');
 
 // This is for list of all the available course show for users who loggedIn or signup for buying new course
-courseRouter.get('/courses', async function (req, res) {
+courseRouter.get('/courses',  async function (req, res) {
     try {
         const courses = await courseModel.find();
 

@@ -5,6 +5,7 @@ const { z } = require('zod');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { JWT_USER_PASSWORD } = require('../config/config');
+const { userMiddleware } = require('../middlewares/user');
 
 const userSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
@@ -19,6 +20,16 @@ const userSchema = z.object({
 const loginSchema = z.object({
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters long"),
+})
+
+const courseSchema = z.object({
+    name: z.string().min(3, "Course Name must be at least 3 characters long"),
+    description: z.string().min(6, "Description must be at least 6 characters long"),
+    price: z.number().positive(),
+    instructor: z.string().min(3),
+    rating: z.number().min(1).max(5),
+    createdAt: z.date(),
+    updatedAt: z.date(),
 })
 
 userRouter.post('/signup', async function (req, res) {
@@ -116,6 +127,44 @@ userRouter.post('/login', async function (req, res) {
                     token: token
                 })
             }
+        }
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
+
+})
+
+userRouter.post('/create-course', userMiddleware, function (req, res) {
+    try {
+        const userId = req.userId;
+
+        const { name, description, price, instructor, rating } = req.body;
+        const parsedData = courseSchema.safeParse(req.body);
+
+        if (!parsedData.success) {
+            return res.status(400).json({
+                success: false,
+                message: parsedData.error.issues[0].message
+            })
+        }
+        else {
+            const newCourse = new courseModel({
+                name,
+                description,
+                price,
+                instructor,
+                rating
+            })
+
+            newCourse.create();
+            return res.status(201).json({
+                success: true,
+                message: "Course created successfully"
+            })
         }
     }
     catch (err) {
