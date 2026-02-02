@@ -4,7 +4,7 @@ const { userModel } = require('../db');
 const { z } = require('zod');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const JWT_USER_PASSWORD = 'Nooruddin@786'
+const { JWT_USER_PASSWORD } = require('../config/config');
 
 const userSchema = z.object({
     name: z.string().min(3, "Name must be at least 3 characters long"),
@@ -104,9 +104,11 @@ userRouter.post('/login', async function (req, res) {
             else {
                 const token = jwt.sign({
                     _id: existingUser._id,
+                    name: existingUser.name,
                     email: existingUser.email,
                     role: existingUser.role
                 }, JWT_USER_PASSWORD);
+
                 return res.status(200).json({
                     success: true,
                     message: "User logged in successfully",

@@ -4,7 +4,7 @@ const { adminModel, courseModel } = require('../db');
 const { z } = require('zod');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const JWT_ADMIN_PASSWORD = 'NooruddinMdAfsar@786'
+const { JWT_ADMIN_PASSWORD } = require('../config/config');
 
 const adminSchema = z.object({
     email: z.string().email("Invalid email address"),
