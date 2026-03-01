@@ -19,6 +19,7 @@ const adminSchema = new Schema({
 
 const courseSchema = new Schema({
     name: { type: String, required: true },
+    courseId: { type: Schema.Types.ObjectId },
     description: { type: String, required: true },
     price: { type: Number, required: true },
     // duration: { type: Number, required: true },

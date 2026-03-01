@@ -142,7 +142,7 @@ userRouter.post('/create-course', userMiddleware, function (req, res) {
     try {
         const userId = req.userId;
 
-        const { name, description, price, instructor, rating } = req.body;
+        const { name, description, price, instructor, rating, courseId } = req.body;
         const parsedData = courseSchema.safeParse(req.body);
 
         if (!parsedData.success) {
@@ -157,7 +157,9 @@ userRouter.post('/create-course', userMiddleware, function (req, res) {
                 description,
                 price,
                 instructor,
-                rating
+                rating,
+                courseId,
+                userId
             })
 
             newCourse.create();
@@ -176,6 +178,20 @@ userRouter.post('/create-course', userMiddleware, function (req, res) {
 
 })
 
+userRouter.put('/update-course/', userMiddleware, function (req, res) {
+    try {
+        const userId = req.userId;
+        const { name, description, price, instructor, rating } = req.body;
+
+        const course = async
+    }
+    catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: err.message
+        })
+    }
+})
 userRouter.post('/logout', function (req, res) {
     res.json({
         success: true,
